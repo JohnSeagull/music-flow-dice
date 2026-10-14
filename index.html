@@ -1,0 +1,1256 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Четыре двенадцатигранника задают тему публикации: объект, жанр, страна и эпоха.">
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root{
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+body{margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Кубики Music Flow</title>
+<style>
+/* Layout: a studio track sheet — rule under the header, four dice thrown into
+   their own little wells, the landed word under each, then the roll in full. */
+:root{
+  --bg:#e7e0d1;
+  --surface:#f7f3ea;
+  --surface-2:#efe9db;
+  --fg:#1c1813;
+  --fg-dim:#6f6555;
+  --rule:#c9bda6;
+  --accent:#bb3f1c;
+  --accent-fg:#fdf8f0;
+  --font-display:"Onest","Helvetica Neue",Arial,sans-serif;
+  --font-mono:"Onest","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#131519; --surface:#1c2027; --surface-2:#232830;
+    --fg:#ece5d8; --fg-dim:#8d8678; --rule:#2f353e;
+    --accent:#e4672f; --accent-fg:#121418;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131519; --surface:#1c2027; --surface-2:#232830;
+  --fg:#ece5d8; --fg-dim:#8d8678; --rule:#2f353e;
+  --accent:#e4672f; --accent-fg:#121418;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:var(--font-mono); font-size:15px; line-height:1.5; margin:0;
+}
+.sheet{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:28px 56px}
+
+.sheet-head{
+  display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline;
+  justify-content:space-between;padding-bottom:10px;border-bottom:2px solid var(--fg);
+}
+.brand{font-family:var(--font-display);font-weight:800;font-size:clamp(20px,4vw,26px)}
+.brand span{color:var(--accent)}
+.sheet-meta{
+  font-size:12px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--fg-dim);font-variant-numeric:tabular-nums;
+}
+.sheet-side{display:flex;align-items:center;gap:12px}
+.theme{
+  flex:0 0 auto;width:26px;height:26px;padding:0;cursor:pointer;
+  background:transparent;border:1px solid var(--rule);border-radius:50%;
+  color:var(--fg-dim);display:flex;align-items:center;justify-content:center;
+}
+.theme:hover{color:var(--fg);border-color:var(--fg-dim)}
+.theme:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.theme svg{width:14px;height:14px;display:block}
+.lede{margin:14px 0 22px;max-width:62ch;color:var(--fg-dim);font-size:13.5px}
+
+.dice{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(5px,1.2vw,12px)}
+
+.slot{display:flex;flex-direction:column;min-width:0}
+.stage{position:relative;height:clamp(96px,20vw,176px)}
+.stage canvas{display:block;width:100%;height:100%}
+.card{
+  margin-top:2px;padding:clamp(6px,1.1vw,9px) clamp(6px,1.2vw,10px) clamp(8px,1.4vw,11px);
+  min-width:0;text-align:left;
+  font:inherit;color:inherit;background:var(--surface);
+  border:1px solid var(--rule);border-radius:3px;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.card:hover{border-color:var(--fg-dim)}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card[data-locked="true"]{background:var(--surface-2);border-color:var(--accent)}
+.card-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.card-role{
+  font-size:clamp(8px,1.3vw,10.5px);letter-spacing:.12em;
+  text-transform:uppercase;color:var(--fg-dim);
+}
+.card-right{display:flex;align-items:center;gap:clamp(4px,0.8vw,7px);flex:0 0 auto}
+.card-num{
+  font-family:var(--font-display);font-weight:700;font-size:clamp(10px,1.5vw,13px);
+  color:var(--accent);font-variant-numeric:tabular-nums;line-height:1;
+}
+.card-lock{flex:0 0 auto;display:block;width:13px;height:15px;overflow:visible}
+.card-lock .lk-body{fill:none;stroke:var(--fg-dim);stroke-width:1.4}
+.card-lock .lk-sh{fill:none;stroke:var(--fg-dim);stroke-width:1.4;stroke-linecap:round}
+.card-lock .lk-closed{display:none}
+.card:hover .card-lock .lk-body,.card:hover .card-lock .lk-sh{stroke:var(--fg)}
+.card[data-locked="true"] .card-lock .lk-open{display:none}
+.card[data-locked="true"] .card-lock .lk-closed{display:inline}
+.card[data-locked="true"] .card-lock .lk-body{fill:var(--accent);stroke:var(--accent)}
+.card[data-locked="true"] .card-lock .lk-sh{stroke:var(--accent)}
+.card-word{
+  margin-top:5px;font-family:var(--font-display);font-weight:700;
+  font-size:clamp(10.5px,1.9vw,16px);line-height:1.18;
+  overflow-wrap:anywhere;hyphens:auto;
+}
+
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 0}
+button.act{font:inherit;font-weight:500;padding:12px 22px;border-radius:3px;cursor:pointer;border:1px solid transparent}
+button.act:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.act-main{
+  background:var(--accent);color:var(--accent-fg);font-family:var(--font-display);
+  font-weight:700;letter-spacing:.06em;text-transform:uppercase;flex:1 1 180px;
+}
+.act-main:disabled{opacity:.55;cursor:default}
+.act-ghost{background:transparent;color:var(--fg);border-color:var(--rule)}
+.act-ghost:hover{border-color:var(--fg-dim)}
+.hint{margin:10px 0 0;font-size:12px;color:var(--fg-dim)}
+
+.result{
+  margin:26px 0 0;padding:18px 18px 20px;background:var(--surface);
+  border:1px solid var(--rule);border-left:4px solid var(--accent);border-radius:3px;
+}
+.result-label{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-dim)}
+.result-text{
+  margin-top:8px;font-family:var(--font-display);font-weight:800;
+  font-size:clamp(18px,3.3vw,26px);line-height:1.25;text-wrap:balance;
+}
+.result-text .sep{color:var(--accent);font-weight:500}
+
+details{margin-top:30px;border-top:1px solid var(--rule);padding-top:10px}
+summary{
+  cursor:pointer;font-family:var(--font-display);font-weight:700;font-size:13px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--fg-dim);
+}
+summary:hover{color:var(--fg)}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+.log-tools{display:flex;justify-content:flex-end;padding:6px 2px 2px}
+.log-clear{
+  font:inherit;font-size:12px;background:none;border:0;padding:4px 2px;
+  color:var(--fg-dim);text-decoration:underline;cursor:pointer;
+}
+.log-clear:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.log ol{list-style:none;margin:0;padding:0}
+.log li{
+  display:flex;gap:12px;align-items:baseline;padding:9px 2px;
+  border-bottom:1px solid var(--rule);font-size:13.5px;
+}
+.log-n{flex:0 0 auto;min-width:2.2em;color:var(--fg-dim);font-variant-numeric:tabular-nums}
+.log-text{min-width:0;overflow-wrap:break-word}
+.log-empty{padding:14px 2px;color:var(--fg-dim);font-size:13px}
+
+.map{margin-top:34px}
+.map-head{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding-bottom:7px;border-bottom:1px solid var(--rule);
+}
+.map-head h2{
+  margin:0;font-family:var(--font-display);font-weight:700;font-size:13px;
+  letter-spacing:.1em;text-transform:uppercase;
+}
+.map-note{font-size:12px;color:var(--fg-dim)}
+.map-scroll{overflow-x:auto;margin-top:12px}
+.map-scroll svg{display:block;min-width:620px;width:100%;height:auto}
+.plot-axis{stroke:var(--rule);stroke-width:1}
+.plot-line{fill:none;stroke:var(--fg-dim);stroke-linejoin:round;stroke-linecap:round}
+.plot-line.is-last{stroke:var(--accent);stroke-width:2}
+.plot-dot{fill:var(--accent)}
+.plot-head{
+  fill:var(--fg-dim);font-family:var(--font-mono);font-size:9.5px;
+  letter-spacing:.12em;text-transform:uppercase;
+}
+.plot-bullet{fill:var(--bg);stroke:var(--rule);stroke-width:1}
+.plot-bullet.is-active{fill:var(--accent);stroke:none}
+.plot-num{
+  fill:var(--fg-dim);font-family:var(--font-mono);font-size:8.5px;
+  font-variant-numeric:tabular-nums;text-anchor:middle;
+}
+.plot-num.is-active{fill:var(--accent-fg);font-weight:700}
+.plot-label{
+  fill:var(--fg-dim);font-family:var(--font-mono);font-size:10px;
+  paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round;
+}
+.plot-label.is-active{fill:var(--fg);font-weight:600;stroke:none}
+.plot-ticket{fill:var(--surface);stroke:var(--rule);stroke-width:1}
+.plot-perf{stroke:var(--rule);stroke-width:1;stroke-dasharray:2 2.6}
+.map-empty{padding:14px 2px;color:var(--fg-dim);font-size:13px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <header class="sheet-head">
+    <div class="brand">Music <span>Flow</span></div>
+    <div class="sheet-side">
+      <span class="sheet-meta">бросок №<span id="rollNo">1</span></span>
+      <button class="theme" id="theme" type="button" aria-label="Сменить тему"></button>
+    </div>
+  </header>
+
+  <p class="lede">Четыре двенадцатигранника, сорок восемь значений. На костях только числа, слово под каждой. Нажми на карточку, чтобы закрепить кость: замок закроется, и она перестанет перебрасываться.</p>
+
+  <div class="dice" id="dice"></div>
+
+  <div class="controls">
+    <button class="act act-main" id="roll">Бросок</button>
+    <button class="act act-ghost" id="copy">Скопировать</button>
+    <button class="act act-ghost" id="unlock">Снять все</button>
+  </div>
+  <p class="hint" id="hint">Невозможные сочетания переигрываются: у каждого жанра свой отрезок времени и свой набор стран. Грани внутри кости выпадают не поровну, объект и жанр не повторяются несколько бросков подряд. Пробел — бросок.</p>
+
+  <div class="result">
+    <div class="result-label">выпало</div>
+    <div class="result-text" id="result"></div>
+  </div>
+
+  <section class="map">
+    <div class="map-head">
+      <h2>Карта бросков</h2>
+      <span class="map-note">последние девять</span>
+    </div>
+    <div class="map-scroll" id="plot"></div>
+    <p class="map-empty" id="plotEmpty" hidden>Брось кости — здесь появятся линии.</p>
+  </section>
+
+  <details>
+    <summary>Журнал бросков</summary>
+    <div class="log-tools">
+      <button class="log-clear" id="clearLog">очистить</button>
+    </div>
+    <ol id="logList"></ol>
+    <p class="log-empty" id="logEmpty" hidden>Пока ничего не выпадало.</p>
+  </details>
+</div>
+
+<script src="lib/three.min.js"></script>
+<script src="lib/cannon.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var DICE = [
+    { role:"объект", noRepeat:4,
+      body:0xff5500, ink:"#180803", shade:"rgba(255,255,255,0.32)",
+      faces:[
+      ["барабаны",1],["бас",1],["духовые",1],["голос",1],
+      ["аппаратура",1],["студия",1],["продюсер",1],["менеджер",1],
+      ["контракт",1],["обложка",1],["клип",1],["гастроли",1]
+    ]},
+    { role:"жанр", noRepeat:3,
+      body:0x1fe03c, ink:"#f7f6f2", shade:"rgba(0,0,0,0.34)",
+      faces:[
+      ["пабный рок",1.5],["глэм",1.5],["панк",3],["новая волна",3],
+      ["пост-панк",2.5],["хард-рок",3],["прог",2],["синти-поп",2.5],
+      ["гранж",2.5],["метал",2],["брит-поп",2],["регги",1.2]
+    ]},
+    { role:"страна",
+      body:0x0a3fa2, ink:"#f7f6f2", shade:"rgba(0,0,0,0.34)",
+      faces:[
+      ["Британия",5],["США",5],["Австралия",3],["Германия",2],
+      ["Ирландия",2],["Россия",2],["Канада",1.5],["Швеция",1.5],
+      ["Ямайка",1],["Франция",1],["Япония",1],["Италия",1]
+    ]},
+    { role:"эпоха",
+      body:0x7a1fa8, ink:"#f7f6f2", shade:"rgba(0,0,0,0.34)",
+      faces:[
+      ["1965–69",1.5],["1970–74",3],["1975–79",4],["1980–84",4],
+      ["1985–89",3],["1990–94",2.5],["1995–99",2],["2000–04",1],
+      ["2005–09",0.8],["2010–14",0.6],["2015–19",0.5],["2020–24",0.4]
+    ]}
+  ];
+
+  // Исключения. Жанр живёт в своём отрезке времени и в своих странах;
+  // сочетания вне этих рамок не бывают, и бросок переигрывается, пока не
+  // выпадет возможное. Границы по индексам граней кости «эпоха».
+  var GENRE_ERA = {
+    "пабный рок":[1,2], "глэм":[1,2], "панк":[2,3], "новая волна":[2,4],
+    "пост-панк":[2,4], "хард-рок":[0,5], "прог":[0,2], "синти-поп":[2,4],
+    "гранж":[4,6], "метал":[1,11], "брит-поп":[5,6], "регги":[0,4]
+  };
+  var GENRE_LAND = {
+    "пабный рок":["Британия","Австралия"],
+    "глэм":["Британия","США"],
+    "панк":["Британия","США","Австралия","Германия","Ирландия","Канада","Россия"],
+    "новая волна":["Британия","США","Австралия","Германия","Ирландия","Канада","Япония","Франция","Россия"],
+    "пост-панк":["Британия","США","Ирландия","Германия","Россия"],
+    "хард-рок":["Британия","США","Австралия","Германия","Канада","Швеция","Россия"],
+    "прог":["Британия","Италия","Германия","Франция","США","Россия"],
+    "синти-поп":["Британия","Германия","США","Япония","Швеция","Франция"],
+    "гранж":["США","Британия","Австралия","Канада"],
+    "метал":["Британия","США","Швеция","Германия","Канада","Япония","Австралия","Россия"],
+    "брит-поп":["Британия","Ирландия"],
+    "регги":["Ямайка","Британия"]
+  };
+
+  var STORE_KEY="mf-dice-log-v3", MAX_LOG=40;
+  var colTmp=null;
+
+  var R=0.85;            // радиус описанной сферы кости
+  var ARENA=1.02;        // стенки лотка: заведомо шире радиуса кости, иначе
+                         // она не влезает между ними и её выдавливает вверх
+  var STEP=1/60;
+  var MAX_STEPS=420;
+  var PLAYBACK_CAP=2500; // мс: длинный прокат ускоряем, чтобы не ждать
+
+  var diceEl=document.getElementById("dice");
+  var resultEl=document.getElementById("result");
+  var rollNoEl=document.getElementById("rollNo");
+  var rollBtn=document.getElementById("roll");
+  var copyBtn=document.getElementById("copy");
+  var unlockBtn=document.getElementById("unlock");
+  var logList=document.getElementById("logList");
+  var logEmpty=document.getElementById("logEmpty");
+  var clearBtn=document.getElementById("clearLog");
+  var hintEl=document.getElementById("hint");
+
+  var current=["","","",""], currentIdx=[0,0,0,0], locked=[false,false,false,false];
+  var recent=[], log=[], rolling=false, rigs=[];
+  var reduced = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)").matches : false;
+  var has3d = (typeof THREE !== "undefined" && typeof CANNON !== "undefined");
+  if(has3d) colTmp=new THREE.Color();
+
+  /* ---------- выбор граней ---------- */
+  function weightedIndex(faces, excludeNames){
+    var pool=[], i;
+    for(i=0;i<faces.length;i++){
+      if(!excludeNames || excludeNames.indexOf(faces[i][0])===-1) pool.push(i);
+    }
+    if(!pool.length) for(i=0;i<faces.length;i++) pool.push(i);
+    var total=0;
+    for(i=0;i<pool.length;i++) total+=faces[pool[i]][1];
+    var n=Math.random()*total;
+    for(i=0;i<pool.length;i++){
+      n-=faces[pool[i]][1];
+      if(n<=0) return pool[i];
+    }
+    return pool[pool.length-1];
+  }
+  function pickFor(i){
+    var d=DICE[i];
+    return weightedIndex(d.faces, d.noRepeat ? recent.slice(-d.noRepeat) : null);
+  }
+
+  function validCombo(p){
+    var genre=DICE[1].faces[p[1]][0];
+    var land=DICE[2].faces[p[2]][0];
+    var span=GENRE_ERA[genre];
+    if(span && (p[3]<span[0] || p[3]>span[1])) return false;
+    var lands=GENRE_LAND[genre];
+    if(lands && lands.indexOf(land)===-1) return false;
+    return true;
+  }
+
+  // Кидаем, пока не выпадет возможное сочетание. Закреплённые кости могут
+  // сделать задачу нерешаемой — тогда после предела отдаём как есть.
+  function rollPicks(){
+    var p, n;
+    for(n=0;n<600;n++){
+      p=[];
+      for(var i=0;i<DICE.length;i++) p.push(locked[i] ? currentIdx[i] : pickFor(i));
+      if(validCombo(p)) return p;
+    }
+    return p;
+  }
+
+  /* ---------- текстуры ---------- */
+  var ENV=null;
+  function envTexture(){
+    var w=512,h=256,c=document.createElement("canvas");
+    c.width=w; c.height=h;
+    var g=c.getContext("2d");
+    var grad=g.createLinearGradient(0,0,0,h);
+    grad.addColorStop(0.00,"#ffffff");
+    grad.addColorStop(0.30,"#ece7dd");
+    grad.addColorStop(0.52,"#8d8980");
+    grad.addColorStop(0.74,"#3b3a34");
+    grad.addColorStop(1.00,"#141310");
+    g.fillStyle=grad; g.fillRect(0,0,w,h);
+    var s=g.createRadialGradient(w*0.28,h*0.20,2,w*0.28,h*0.20,h*0.44);
+    s.addColorStop(0,"rgba(255,255,255,1)");
+    s.addColorStop(1,"rgba(255,255,255,0)");
+    g.fillStyle=s; g.fillRect(0,0,w,h);
+    var s2=g.createRadialGradient(w*0.76,h*0.34,2,w*0.76,h*0.34,h*0.30);
+    s2.addColorStop(0,"rgba(255,245,228,0.85)");
+    s2.addColorStop(1,"rgba(255,245,228,0)");
+    g.fillStyle=s2; g.fillRect(0,0,w,h);
+    var t=new THREE.CanvasTexture(c);
+    t.mapping=THREE.EquirectangularReflectionMapping;
+    t.encoding=THREE.sRGBEncoding;
+    return t;
+  }
+
+  function pearlTexture(swirlHex){
+    var S=256,c=document.createElement("canvas");
+    c.width=S; c.height=S;
+    var g=c.getContext("2d");
+    g.fillStyle="#ffffff"; g.fillRect(0,0,S,S);
+    for(var i=0;i<26;i++){
+      var x=Math.random()*S, y=Math.random()*S, r=S*(0.12+Math.random()*0.30);
+      var rg=g.createRadialGradient(x,y,1,x,y,r);
+      rg.addColorStop(0, swirlHex);
+      rg.addColorStop(1, "rgba(255,255,255,0)");
+      g.globalAlpha=0.16+Math.random()*0.18;
+      g.fillStyle=rg;
+      g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill();
+    }
+    g.globalAlpha=1;
+    var t=new THREE.CanvasTexture(c);
+    t.encoding=THREE.sRGBEncoding;
+    return t;
+  }
+
+  // Мелкое зерно: у литого пластика поверхность не идеально ровная, и без
+  // этого кость выглядит нарисованной.
+  var GRAIN=null;
+  function grainTexture(){
+    var S=256, c=document.createElement("canvas");
+    c.width=S; c.height=S;
+    var g=c.getContext("2d"), img=g.createImageData(S,S), d=img.data;
+    for(var i=0;i<d.length;i+=4){
+      var v=196+((Math.random()*48)|0);
+      d[i]=d[i+1]=d[i+2]=v; d[i+3]=255;
+    }
+    g.putImageData(img,0,0);
+    var t=new THREE.CanvasTexture(c);
+    t.wrapS=t.wrapT=THREE.RepeatWrapping;
+    t.repeat.set(3,3);
+    return t;
+  }
+
+  // Только краска, без площадки: цифра ложится прямо на поверхность кости,
+  // поэтому вокруг грани нет ни рамки, ни контура.
+  function glyphTexture(n, inkHex, shadeHex){
+    var S=256, two=(n>9), six=(n===6||n===9);
+    var c=document.createElement("canvas");
+    c.width=S; c.height=S;
+    var g=c.getContext("2d");
+    g.clearRect(0,0,S,S);
+    g.textAlign="center"; g.textBaseline="middle";
+    g.font='700 '+(six?168:(two?150:206))+'px "Space Mono", ui-monospace, Menlo, monospace';
+    // Белая краска, как на настоящих костях: тёмный след снизу даёт вид
+    // утопленной в пластик гравировки.
+    // Утопленная гравировка: тёмный край со стороны света, светлый с
+    // противоположной, краска между ними.
+    g.fillStyle="rgba(0,0,0,0.34)";
+    g.fillText(String(n), S/2-3, S/2-3);
+    g.fillStyle="rgba(255,255,255,0.30)";
+    g.fillText(String(n), S/2+3, S/2+4);
+    g.fillStyle=inkHex;
+    g.fillText(String(n), S/2, S/2);
+    if(six){
+      g.fillStyle="rgba(0,0,0,0.34)";
+      g.fillRect(S/2-41, S/2+94, 76, 11);
+      g.fillStyle="rgba(255,255,255,0.30)";
+      g.fillRect(S/2-35, S/2+101, 76, 11);
+      g.fillStyle=inkHex;
+      g.fillRect(S/2-38, S/2+97, 76, 11);
+    }
+    var t=new THREE.CanvasTexture(c);
+    t.encoding=THREE.sRGBEncoding;
+    t.anisotropy=8;
+    return t;
+  }
+
+  /* ---------- геометрия многогранника ---------- */
+  // Вершины и пятиугольные грани одного додекаэдра — общие для трёхмерной
+  // модели и для выпуклого тела физики.
+  var SHAPE=null;
+  function dodecahedron(radius){
+    var geo=new THREE.DodecahedronGeometry(radius,0);
+    var pos=geo.attributes.position;
+    var verts=[], tris=[], i, j;
+
+    function vertIndex(v){
+      for(var k=0;k<verts.length;k++) if(verts[k].distanceToSquared(v)<1e-8) return k;
+      verts.push(v.clone());
+      return verts.length-1;
+    }
+
+    var a=new THREE.Vector3(), b=new THREE.Vector3(), c=new THREE.Vector3();
+    var ab=new THREE.Vector3(), ac=new THREE.Vector3(), nrm=new THREE.Vector3();
+    var groups=[];
+    for(i=0;i<pos.count;i+=3){
+      a.fromBufferAttribute(pos,i); b.fromBufferAttribute(pos,i+1); c.fromBufferAttribute(pos,i+2);
+      ab.subVectors(b,a); ac.subVectors(c,a);
+      nrm.crossVectors(ab,ac).normalize();
+      // Нормали сравниваются скалярным произведением: по округлённой строке
+      // пятиугольник на границе округления распадался на две группы.
+      var grp=null;
+      for(j=0;j<groups.length;j++){ if(groups[j].n.dot(nrm)>0.999){ grp=groups[j]; break; } }
+      if(!grp){ grp={ n:nrm.clone(), d:a.dot(nrm), idx:[], verts:[] }; groups.push(grp); }
+      grp.verts.push(i, i+1, i+2);   // позиции в буфере — по ним красим грань
+      [a,b,c].forEach(function(v){
+        var id=vertIndex(v);
+        if(grp.idx.indexOf(id)===-1) grp.idx.push(id);
+      });
+    }
+
+    var faces=[];
+    for(j=0;j<groups.length;j++){
+      var n=groups[j].n.clone().normalize();
+      var upRef=Math.abs(n.y)>0.95 ? new THREE.Vector3(0,0,1) : new THREE.Vector3(0,1,0);
+      var rt=new THREE.Vector3().crossVectors(upRef,n).normalize();
+      var up=new THREE.Vector3().crossVectors(n,rt).normalize();
+      var center=n.clone().multiplyScalar(groups[j].d);
+      // Вершины грани по кругу: против часовой, если смотреть снаружи —
+      // этого ждёт выпуклое тело Cannon.
+      var ids=groups[j].idx.slice().sort(function(p,q){
+        var rp=verts[p].clone().sub(center), rq=verts[q].clone().sub(center);
+        return Math.atan2(rp.dot(up),rp.dot(rt)) - Math.atan2(rq.dot(up),rq.dot(rt));
+      });
+      var rel=verts[ids[0]].clone().sub(center);
+      faces.push({
+        normal:n, center:center, right:rt, up:up,
+        phi:Math.atan2(rel.dot(up), rel.dot(rt)),
+        idx:ids, verts:groups[j].verts
+      });
+    }
+    faces.sort(function(p,q){
+      return (q.normal.y-p.normal.y) || (p.normal.x-q.normal.x) || (p.normal.z-q.normal.z);
+    });
+    return { geometry:geo, vertices:verts, faces:faces };
+  }
+
+
+  // Скругление по дугам: пятиугольник грани поджимается к центру, а место
+  // вдоль рёбер и в углах застраивается рядами точек, уложенных по сфере.
+  function rounded(dod, t, SEG, CORN){
+    var V=dod.vertices, F=dod.faces;
+    var pos=[], nor=[], own=[], inset=[], f, k, i, j;
+
+    for(f=0;f<12;f++){
+      inset[f]=F[f].idx.map(function(id){
+        return V[id].clone().sub(F[f].center).multiplyScalar(t).add(F[f].center);
+      });
+    }
+    function insetFor(fi, id){ return inset[fi][F[fi].idx.indexOf(id)]; }
+    var RAD=inset[0][0].length();
+
+    var ab=new THREE.Vector3(), ac=new THREE.Vector3(), nn=new THREE.Vector3(), cen=new THREE.Vector3();
+    function push(a,b,c,faceId,smooth){
+      ab.subVectors(b,a); ac.subVectors(c,a);
+      nn.crossVectors(ab,ac);
+      cen.copy(a).add(b).add(c).divideScalar(3);
+      if(nn.dot(cen)<0){ var tmp=b; b=c; c=tmp;
+        ab.subVectors(b,a); ac.subVectors(c,a); nn.crossVectors(ab,ac); }
+      nn.normalize();
+      var tri=[a,b,c];
+      for(var q=0;q<3;q++){
+        var pnt=tri[q];
+        pos.push(pnt.x,pnt.y,pnt.z);
+        if(smooth){ var sv=pnt.clone().normalize(); nor.push(sv.x,sv.y,sv.z); }
+        else nor.push(nn.x,nn.y,nn.z);
+        own.push(faceId);
+      }
+    }
+    function arc(a,b,u){ return a.clone().lerp(b,u).normalize().multiplyScalar(RAD); }
+
+    for(f=0;f<12;f++){
+      var q=inset[f];
+      for(k=1;k<q.length-1;k++) push(q[0],q[k],q[k+1],f,false);
+    }
+
+    var seen={};
+    for(f=0;f<12;f++){
+      var ids=F[f].idx;
+      for(k=0;k<ids.length;k++){
+        var a=ids[k], b=ids[(k+1)%ids.length];
+        var key=Math.min(a,b)+"_"+Math.max(a,b);
+        if(seen[key]!==undefined){
+          var g=seen[key];
+          var Aa=insetFor(g,a), Ab=insetFor(g,b);
+          var Ba=insetFor(f,a), Bb=insetFor(f,b);
+          for(i=0;i<SEG;i++){
+            var u0=i/SEG, u1=(i+1)/SEG;
+            var p00=arc(Aa,Ba,u0), p01=arc(Ab,Bb,u0);
+            var p10=arc(Aa,Ba,u1), p11=arc(Ab,Bb,u1);
+            push(p00,p01,p11,12,true);
+            push(p00,p11,p10,12,true);
+          }
+        } else seen[key]=f;
+      }
+    }
+
+    for(var id=0;id<V.length;id++){
+      var fs=[];
+      for(f=0;f<12;f++) if(F[f].idx.indexOf(id)>=0) fs.push(f);
+      if(fs.length!==3) continue;
+      var P1=insetFor(fs[0],id), P2=insetFor(fs[1],id), P3=insetFor(fs[2],id);
+      var N=CORN;
+      var bary=function(ii,jj){
+        return P1.clone().multiplyScalar((N-ii-jj)/N)
+          .add(P2.clone().multiplyScalar(ii/N))
+          .add(P3.clone().multiplyScalar(jj/N))
+          .normalize().multiplyScalar(RAD);
+      };
+      for(i=0;i<N;i++) for(j=0;j<N-i;j++){
+        push(bary(i,j), bary(i+1,j), bary(i,j+1), 12, true);
+        if(j<N-i-1) push(bary(i+1,j), bary(i+1,j+1), bary(i,j+1), 12, true);
+      }
+    }
+
+    var geo=new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos,3));
+    geo.setAttribute("normal", new THREE.Float32BufferAttribute(nor,3));
+    var lists=[];
+    for(f=0;f<13;f++) lists[f]=[];
+    for(k=0;k<own.length;k++) lists[own[k]].push(k);
+    return { geometry:geo, faceVerts:lists };
+  }
+
+  function convexShape(dod){
+    var pts=dod.vertices.map(function(v){ return new CANNON.Vec3(v.x,v.y,v.z); });
+    var idx=dod.faces.map(function(f){ return f.idx.slice(); });
+    return new CANNON.ConvexPolyhedron(pts, idx);
+  }
+
+  /* ---------- сцена одной кости ---------- */
+  function makeRig(canvas, spec){
+    var renderer=new THREE.WebGLRenderer({canvas:canvas, alpha:true, antialias:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+    renderer.outputEncoding=THREE.sRGBEncoding;
+    renderer.toneMapping=THREE.LinearToneMapping;
+    renderer.toneMappingExposure=1.0;
+    renderer.shadowMap.enabled=true;
+    renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+
+    var scene=new THREE.Scene();
+    // Камера смотрит на лоток сверху и спереди, как на стол: выпавшей
+    // считается грань, которая смотрит вверх.
+    var camera=new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+    camera.position.set(0, 4.40, 2.64);
+    camera.lookAt(0, 0.98, 0);
+
+    if(!ENV) ENV=envTexture();
+    if(!GRAIN) GRAIN=grainTexture();
+    scene.environment=ENV;
+
+    // Рассеянный свет: мягкий полусферический плюс неяркий ключевой, а тень
+    // намеренно размыта низким разрешением карты — так она читается не как
+    // силуэт от лампы, а как затенение под предметом.
+    scene.add(new THREE.AmbientLight(0xffffff, 0.16));
+    scene.add(new THREE.HemisphereLight(0xfffaf0, 0x6b6253, 0.34));
+    var key=new THREE.DirectionalLight(0xfff4e4, 0.40);
+    key.position.set(1.6, 5.2, 2.4);
+    key.castShadow=true;
+    key.shadow.mapSize.set(256,256);
+    key.shadow.camera.left=-2.6; key.shadow.camera.right=2.6;
+    key.shadow.camera.top=2.6; key.shadow.camera.bottom=-2.6;
+    key.shadow.camera.near=0.5; key.shadow.camera.far=12;
+    key.shadow.radius=5;
+    key.shadow.bias=-0.0012;
+    scene.add(key);
+    var fill=new THREE.DirectionalLight(0xdfe8ff, 0.10); fill.position.set(-3,1.4,2); scene.add(fill);
+    var rim=new THREE.DirectionalLight(0xffffff, 0.08); rim.position.set(-1.4,2.0,-3.2); scene.add(rim);
+
+    var floor=new THREE.Mesh(
+      new THREE.PlaneGeometry(9,9),
+      new THREE.ShadowMaterial({ opacity:0.17 })
+    );
+    floor.rotation.x=-Math.PI/2;
+    floor.receiveShadow=true;
+    scene.add(floor);
+
+    if(!SHAPE) SHAPE=dodecahedron(R);
+    var dod=SHAPE;
+
+    var shell=rounded(dod, 0.93, 4, 3);
+    var core=shell.geometry;
+
+    var colFull=new THREE.Color(spec.body);
+    // Кость цветная и непрозрачная. Невыпавшие грани — тот же тон, но
+    // разбелённый: цвет кости читается целиком, а выпавшая грань выделяется
+    // насыщенностью, а не чужим серым.
+    var colHsl={}; colFull.getHSL(colHsl);
+    var colSilver=new THREE.Color().setHSL(colHsl.h, colHsl.s*0.85, colHsl.l*0.68);
+    // В этой версии three нет управления цветом: значения материала считаются
+    // линейными, а на выходе ещё раз накладывается гамма. Без явного перевода
+    // цвет выходит светлее и бледнее заданного.
+    colFull.convertSRGBToLinear();
+    colSilver.convertSRGBToLinear();
+
+    // Цвет грани живёт в вершинах: буфер не индексирован, вершины соседних
+    // граней не общие, поэтому границы остаются чёткими даже при гладких
+    // нормалях — а тело при этом цельное, без накладных площадок.
+    var colAttr=new THREE.BufferAttribute(
+      new Float32Array(core.attributes.position.count*3), 3);
+    core.setAttribute("color", colAttr);
+    function paintFace(i, col){
+      var vs=shell.faceVerts[i];
+      for(var k=0;k<vs.length;k++) colAttr.setXYZ(vs[k], col.r, col.g, col.b);
+    }
+    for(var fi=0;fi<13;fi++) paintFace(fi, colFull);
+    colAttr.needsUpdate=true;
+
+    var solid=new THREE.Mesh(core, new THREE.MeshPhysicalMaterial({
+      color:0xffffff, vertexColors:true, flatShading:false,
+      roughness:0.78, metalness:0.0,
+      roughnessMap:GRAIN,
+      clearcoat:0.16, clearcoatRoughness:0.55,
+      envMap:ENV, envMapIntensity:0.2
+    }));
+    solid.castShadow=true;
+    scene.add(solid);
+
+    // Цифры — прозрачные накладки вплотную к поверхности. Квадрат вписан в
+    // окружность, вписанную в пятиугольник, иначе углы вылезали бы за ребро.
+    var glyphSize=R*0.66;
+    var panels=[];
+    for(var i=0;i<dod.faces.length;i++){
+      var f=dod.faces[i];
+      var pl=new THREE.Mesh(
+        new THREE.PlaneGeometry(glyphSize, glyphSize),
+        new THREE.MeshStandardMaterial({
+          transparent:true, depthWrite:false,
+          roughness:0.42, metalness:0.0,
+          envMap:ENV, envMapIntensity:0.2
+        })
+      );
+      pl.quaternion.setFromRotationMatrix(
+        new THREE.Matrix4().makeBasis(f.right, f.up, f.normal));
+      pl.position.copy(f.center).add(f.normal.clone().multiplyScalar(0.006));
+      solid.add(pl);
+      panels.push(pl);
+    }
+
+    var texNum=[], panelNum=[];
+    for(i=1;i<=12;i++) texNum.push(glyphTexture(i, spec.ink, spec.shade));
+
+    /* ---- физика ---- */
+    var world=new CANNON.World();
+    world.gravity.set(0,-34,0);
+    world.broadphase=new CANNON.NaiveBroadphase();
+    world.solver.iterations=12;
+    world.allowSleep=true;
+
+    var matDie=new CANNON.Material("die");
+    var matBox=new CANNON.Material("box");
+    world.addContactMaterial(new CANNON.ContactMaterial(matDie, matBox, {
+      friction:0.36, restitution:0.28
+    }));
+
+    function addPlane(pos, axis, angle){
+      var b=new CANNON.Body({ mass:0, shape:new CANNON.Plane(), material:matBox });
+      b.quaternion.setFromAxisAngle(axis, angle);
+      b.position.set(pos[0],pos[1],pos[2]);
+      world.addBody(b);
+    }
+    addPlane([0,0,0], new CANNON.Vec3(1,0,0), -Math.PI/2);          // пол
+    addPlane([ ARENA,0,0], new CANNON.Vec3(0,1,0), -Math.PI/2);     // стенки
+    addPlane([-ARENA,0,0], new CANNON.Vec3(0,1,0),  Math.PI/2);
+    addPlane([0,0, ARENA], new CANNON.Vec3(0,1,0),  Math.PI);
+    addPlane([0,0,-ARENA], new CANNON.Vec3(0,1,0),  0);
+
+    var body=new CANNON.Body({ mass:1, shape:convexShape(dod), material:matDie });
+    body.allowSleep=true;
+    body.sleepSpeedLimit=0.12;
+    body.sleepTimeLimit=0.25;
+    world.addBody(body);
+
+    var rig={
+      renderer:renderer, scene:scene, camera:camera,
+      solid:solid, panels:panels,
+      world:world, body:body, faces:dod.faces
+    };
+
+    rig.render=function(){ renderer.render(scene,camera); };
+    rig.resize=function(){
+      var w=canvas.clientWidth||1, h=canvas.clientHeight||1;
+      renderer.setSize(w,h,false);
+      camera.aspect=w/h; camera.updateProjectionMatrix();
+      rig.render();
+    };
+
+    // Прогон физики до остановки. Возвращает записанную траекторию и номер
+    // грани, которая осталась смотреть вверх.
+    rig.simulate=function(){
+      body.wakeUp();
+      body.position.set((Math.random()*2-1)*0.3, 2.3, (Math.random()*2-1)*0.3);
+      body.quaternion.setFromEuler(Math.random()*6.28, Math.random()*6.28, Math.random()*6.28);
+      body.velocity.set((Math.random()*2-1)*1.6, -2.2, (Math.random()*2-1)*1.6);
+      body.angularVelocity.set(
+        (Math.random()*2-1)*15,(Math.random()*2-1)*15,(Math.random()*2-1)*15);
+
+      var track=[], s;
+      for(s=0;s<MAX_STEPS;s++){
+        world.step(STEP);
+        track.push({
+          x:body.position.x, y:body.position.y, z:body.position.z,
+          qx:body.quaternion.x, qy:body.quaternion.y, qz:body.quaternion.z, qw:body.quaternion.w
+        });
+        if(body.sleepState===CANNON.Body.SLEEPING) break;
+      }
+
+      var q=new THREE.Quaternion(body.quaternion.x,body.quaternion.y,body.quaternion.z,body.quaternion.w);
+      var best=0, bestDot=-2, v=new THREE.Vector3();
+      for(var i=0;i<rig.faces.length;i++){
+        v.copy(rig.faces[i].normal).applyQuaternion(q);
+        if(v.y>bestDot){ bestDot=v.y; best=i; }
+      }
+      return { track:track, upFace:best };
+    };
+
+    // Числа переставляются так, чтобы на верхней грани оказалось нужное.
+    // Кости одинаковы с виду, подмену не видно, а связь «число → слово»
+    // в таблице граней остаётся неизменной.
+    rig.label=function(upFace, number){
+      for(var i=0;i<12;i++){
+        var n=((number-1) + (i - upFace) % 12 + 12) % 12;
+        panelNum[i]=n;
+        var m=panels[i].material;
+        m.map=texNum[n];
+        m.needsUpdate=true;
+      }
+      rig.upFace=upFace;
+    };
+
+    // Невыпавшие грани уходят в серебро, выпавшая держит свой цвет.
+    rig.highlight=function(k){
+      colTmp.copy(colFull).lerp(colSilver, k);
+      for(var i=0;i<12;i++) paintFace(i, i===rig.upFace ? colFull : colTmp);
+      paintFace(12, colTmp);            // фаска идёт вместе с телом
+      colAttr.needsUpdate=true;
+    };
+
+    rig.apply=function(f){
+      solid.position.set(f.x,f.y,f.z);
+      solid.quaternion.set(f.qx,f.qy,f.qz,f.qw);
+    };
+
+    return rig;
+  }
+
+  /* ---------- разметка ---------- */
+  var cardEls=[], wordEls=[], numEls=[];
+  function build(){
+    DICE.forEach(function(d,i){
+      var slot=document.createElement("div"); slot.className="slot";
+      var stage=document.createElement("div"); stage.className="stage";
+      var cv=document.createElement("canvas"); cv.setAttribute("aria-hidden","true");
+      stage.appendChild(cv);
+
+      var card=document.createElement("button");
+      card.className="card"; card.type="button";
+      card.setAttribute("data-locked","false");
+      card.setAttribute("aria-pressed","false");
+      var top=document.createElement("div"); top.className="card-top";
+      var role=document.createElement("span"); role.className="card-role"; role.textContent=d.role;
+      var right=document.createElement("span"); right.className="card-right";
+      var num=document.createElement("span"); num.className="card-num";
+      right.appendChild(num); right.appendChild(lockIcon());
+      top.appendChild(role); top.appendChild(right);
+      var word=document.createElement("div"); word.className="card-word";
+      card.appendChild(top); card.appendChild(word);
+      card.addEventListener("click", function(){ toggleLock(i); });
+
+      slot.appendChild(stage); slot.appendChild(card);
+      diceEl.appendChild(slot);
+      cardEls.push(card); wordEls.push(word); numEls.push(num);
+
+      if(has3d){
+        try { rigs.push(makeRig(cv, d)); }
+        catch(e){ has3d=false; }
+      }
+      if(!has3d) stage.hidden=true;
+    });
+    if(has3d){
+      rigs.forEach(function(r){ r.resize(); });
+      if(window.ResizeObserver){
+        new ResizeObserver(function(){ rigs.forEach(function(r){ r.resize(); }); }).observe(diceEl);
+      } else {
+        window.addEventListener("resize", function(){ rigs.forEach(function(r){ r.resize(); }); });
+      }
+    }
+  }
+
+  // Замок: открытая дужка — кость перебрасывается, закрытая — закреплена.
+  var SVGNS="http://www.w3.org/2000/svg";
+  function lockIcon(){
+    var svg=document.createElementNS(SVGNS,"svg");
+    svg.setAttribute("class","card-lock");
+    svg.setAttribute("viewBox","0 0 14 16");
+    svg.setAttribute("aria-hidden","true");
+    var body=document.createElementNS(SVGNS,"rect");
+    body.setAttribute("class","lk-body");
+    body.setAttribute("x","1.6"); body.setAttribute("y","7");
+    body.setAttribute("width","10.8"); body.setAttribute("height","7.6");
+    body.setAttribute("rx","1.6");
+    var open=document.createElementNS(SVGNS,"path");
+    open.setAttribute("class","lk-sh lk-open");
+    open.setAttribute("d","M6.8 7 V4.4 a2.8 2.8 0 0 1 5.6 0 V5.8");
+    var closed=document.createElementNS(SVGNS,"path");
+    closed.setAttribute("class","lk-sh lk-closed");
+    closed.setAttribute("d","M4.2 7 V4.6 a2.8 2.8 0 0 1 5.6 0 V7");
+    svg.appendChild(body); svg.appendChild(open); svg.appendChild(closed);
+    return svg;
+  }
+
+  function toggleLock(i){
+    if(rolling) return;
+    locked[i]=!locked[i];
+    cardEls[i].setAttribute("data-locked", locked[i]?"true":"false");
+    cardEls[i].setAttribute("aria-pressed", locked[i]?"true":"false");
+  }
+  function setWord(i, idx){
+    currentIdx[i]=idx;
+    current[i]=DICE[i].faces[idx][0];
+    wordEls[i].textContent=current[i];
+    numEls[i].textContent=String(idx+1);
+    cardEls[i].setAttribute("aria-label",
+      DICE[i].role+", выпало "+(idx+1)+": "+current[i]+(locked[i]?", закреплено":""));
+  }
+  function phrase(){ return current.join(" · "); }
+  function renderResult(){
+    resultEl.textContent="";
+    current.forEach(function(w,i){
+      if(i){
+        var s=document.createElement("span"); s.className="sep"; s.textContent=" · ";
+        resultEl.appendChild(s);
+      }
+      resultEl.appendChild(document.createTextNode(w));
+    });
+  }
+
+  /* ---------- бросок ---------- */
+  function doRoll(){
+    if(rolling) return;
+    var picks=rollPicks(), i;
+
+    function finish(){
+      for(var k=0;k<DICE.length;k++) setWord(k, picks[k]);
+      if(!locked[0]){
+        recent.push(current[0]);
+        if(recent.length>8) recent.shift();
+      }
+      renderResult();
+      addToLog(phrase(), picks.slice());
+      rolling=false;
+      rollBtn.disabled=false;
+      if(has3d) glow();
+    }
+
+    // Подсветка разгорается после приземления, а не включается щелчком.
+    // Закреплённые кости в разгорание не попадают: иначе они на миг
+    // сбрасываются в полный цвет и возвращаются обратно.
+    function glow(){
+      var targets=[];
+      for(var g=0;g<rigs.length;g++) if(!locked[g]) targets.push(rigs[g]);
+      if(!targets.length) return;
+      if(reduced){
+        targets.forEach(function(r){ r.highlight(1); r.render(); });
+        return;
+      }
+      var t0=performance.now();
+      (function step(now){
+        var k=(now-t0)/340;
+        if(k>1) k=1;
+        var e=k*k*(3-2*k);
+        targets.forEach(function(r){ r.highlight(e); r.render(); });
+        if(k<1) requestAnimationFrame(step);
+      })(t0);
+    }
+
+    if(!has3d){ finish(); return; }
+
+    rolling=true; rollBtn.disabled=true;
+
+    var runs=[];
+    for(i=0;i<rigs.length;i++){
+      if(locked[i]) continue;
+      rigs[i].highlight(0);          // гасим прежнюю подсветку на время броска
+      var sim=rigs[i].simulate();
+      rigs[i].label(sim.upFace, picks[i]+1);
+      var frames=sim.track.length;
+      var realMs=frames*STEP*1000;
+      runs.push({
+        rig:rigs[i], track:sim.track,
+        rate: realMs>PLAYBACK_CAP ? realMs/PLAYBACK_CAP : 1,
+        dur: Math.min(realMs, PLAYBACK_CAP),
+        delay: i*85
+      });
+    }
+    if(!runs.length){ finish(); return; }
+
+    if(reduced){
+      runs.forEach(function(r){ r.rig.apply(r.track[r.track.length-1]); r.rig.render(); });
+      finish();
+      return;
+    }
+
+    var qa=new THREE.Quaternion(), qb=new THREE.Quaternion();
+    var begin=performance.now();
+    function frame(now){
+      var done=0;
+      for(var a=0;a<runs.length;a++){
+        var it=runs[a], t=now-begin-it.delay;
+        if(t<0) continue;
+        var pos=(t/1000)*60*it.rate;          // позиция в кадрах записи
+        var last=it.track.length-1;
+        if(pos>=last){
+          it.rig.apply(it.track[last]);
+          it.rig.render();
+          done++;
+          continue;
+        }
+        var k=Math.floor(pos), f0=it.track[k], f1=it.track[k+1], u=pos-k;
+        qa.set(f0.qx,f0.qy,f0.qz,f0.qw);
+        qb.set(f1.qx,f1.qy,f1.qz,f1.qw);
+        qa.slerp(qb,u);
+        it.rig.solid.position.set(
+          f0.x+(f1.x-f0.x)*u, f0.y+(f1.y-f0.y)*u, f0.z+(f1.z-f0.z)*u);
+        it.rig.solid.quaternion.copy(qa);
+        it.rig.render();
+      }
+      if(done<runs.length) requestAnimationFrame(frame);
+      else finish();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- журнал ---------- */
+  function load(){
+    try{
+      var raw=localStorage.getItem(STORE_KEY);
+      if(raw){
+        var p=JSON.parse(raw);
+        if(Object.prototype.toString.call(p)==="[object Array]") log=p;
+      }
+    }catch(e){ log=[]; }
+  }
+  function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(log)); }catch(e){} }
+  function addToLog(text, values){
+    log.unshift({n:0,t:text,v:values});
+    if(log.length>MAX_LOG) log.pop();
+    for(var i=0;i<log.length;i++) log[i].n=log.length-i;
+    save(); renderLog(); renderPlot();
+  }
+
+  /* ---------- карта бросков: параллельные координаты ---------- */
+  var NS="http://www.w3.org/2000/svg";
+  var plotEl=document.getElementById("plot");
+  var plotEmpty=document.getElementById("plotEmpty");
+
+  function svgEl(name, attrs){
+    var e=document.createElementNS(NS,name);
+    for(var k in attrs) if(Object.prototype.hasOwnProperty.call(attrs,k)) e.setAttribute(k,attrs[k]);
+    return e;
+  }
+
+  function renderPlot(){
+    // Записи из прежних версий журнала не хранили индексы граней — их
+    // рисовать нечем, поэтому они просто не попадают на карту.
+    var rolls=[];
+    for(var i=0;i<log.length && rolls.length<9;i++){
+      if(log[i].v && log[i].v.length===4) rolls.push(log[i]);
+    }
+    plotEl.textContent="";
+    plotEmpty.hidden = rolls.length>0;
+    if(!rolls.length) return;
+
+    var XS=[74,242,410,578], W=792, TOP=40, ROW=25, H=TOP+11*ROW+22;
+    var last=rolls[0].v;
+    var svg=svgEl("svg",{viewBox:"0 0 "+W+" "+H, role:"img"});
+    svg.appendChild(svgEl("title",{})).textContent="Карта последних бросков";
+    // В документ сразу: ширину плашки меряем по реальному тексту, потому что
+    // шрифт пропорциональный и считать по числу знаков больше нельзя.
+    plotEl.appendChild(svg);
+
+    // оси, заголовки, номера граней вместо рисок и названия. Выпавшие в
+    // последнем броске рисуются позже — поверх линий.
+    DICE.forEach(function(d,ax){
+      var x=XS[ax];
+      var head=svgEl("text",{x:x-18,y:20,"class":"plot-head"});
+      head.textContent=d.role;
+      svg.appendChild(head);
+      svg.appendChild(svgEl("line",{
+        x1:x,y1:TOP-10,x2:x,y2:TOP+11*ROW+10,"class":"plot-axis"}));
+    });
+
+    // Линии рисуются до подписей: они всегда под текстом и бледнее его,
+    // а кружок с номером стоит на своём фоне и не просвечивает.
+    for(var r=rolls.length-1;r>=0;r--){
+      var v=rolls[r].v, pts=[];
+      for(var a=0;a<4;a++) pts.push(XS[a]+","+(TOP+v[a]*ROW));
+      var age=(r-1)/Math.max(rolls.length-2,1);
+      var path=svgEl("polyline",{
+        points:pts.join(" "),
+        "class":"plot-line"+(r===0?" is-last":""),
+        "stroke-width":r===0?2:1,
+        opacity:r===0?0.85:(0.28-age*0.25).toFixed(3)
+      });
+      path.appendChild(svgEl("title",{})).textContent=rolls[r].n+". "+rolls[r].t;
+      svg.appendChild(path);
+    }
+
+    DICE.forEach(function(d,ax){
+      var x=XS[ax];
+      d.faces.forEach(function(f,row){
+        if(row===last[ax]) return;
+        var y=TOP+row*ROW;
+        svg.appendChild(svgEl("circle",{cx:x,cy:y,r:7.5,"class":"plot-bullet"}));
+        var nm=svgEl("text",{x:x,y:y+3,"class":"plot-num"});
+        nm.textContent=String(row+1);
+        svg.appendChild(nm);
+        var lb=svgEl("text",{x:x+14,y:y+3.5,"class":"plot-label"});
+        lb.textContent=f[0];
+        svg.appendChild(lb);
+      });
+    });
+
+
+    // Выпавшее — поверх всего. Кружок с номером и плашка срастаются в
+    // билет: отрывная линия идёт по месту их стыка.
+    DICE.forEach(function(d,ax){
+      var x=XS[ax], row=last[ax], y=TOP+row*ROW;
+      var word=d.faces[row][0];
+      // Моноширинный шрифт: ширину можно посчитать, не измеряя в DOM.
+      var lb=svgEl("text",{x:x+23,y:y+3.5,"class":"plot-label is-active"});
+      lb.textContent=word;
+      svg.appendChild(lb);
+      var tw=lb.getComputedTextLength ? lb.getComputedTextLength() : word.length*6.5;
+      var w=tw+31;
+      svg.insertBefore(svgEl("rect",{
+        x:x, y:y-9.5, width:w.toFixed(1), height:19, rx:4, "class":"plot-ticket"}), lb);
+      svg.insertBefore(svgEl("line",{
+        x1:x+17,y1:y-6,x2:x+17,y2:y+6,"class":"plot-perf"}), lb);
+      svg.insertBefore(
+        svgEl("circle",{cx:x,cy:y,r:8.5,"class":"plot-bullet is-active"}), lb);
+      var nm=svgEl("text",{x:x,y:y+3,"class":"plot-num is-active"});
+      nm.textContent=String(row+1);
+      svg.appendChild(nm);
+    });
+  }
+  function renderLog(){
+    logList.textContent="";
+    logEmpty.hidden = log.length>0;
+    log.forEach(function(item){
+      var li=document.createElement("li");
+      var n=document.createElement("span"); n.className="log-n"; n.textContent=item.n+".";
+      var t=document.createElement("span"); t.className="log-text"; t.textContent=item.t;
+      li.appendChild(n); li.appendChild(t); logList.appendChild(li);
+    });
+    rollNoEl.textContent=String(log.length+1);
+  }
+
+  /* ---------- действия ---------- */
+  rollBtn.addEventListener("click", doRoll);
+  unlockBtn.addEventListener("click", function(){
+    if(rolling) return;
+    for(var i=0;i<locked.length;i++){
+      locked[i]=false;
+      cardEls[i].setAttribute("data-locked","false");
+      cardEls[i].setAttribute("aria-pressed","false");
+    }
+  });
+  copyBtn.addEventListener("click", function(){
+    var text=phrase();
+    function ok(){
+      var old=copyBtn.textContent;
+      copyBtn.textContent="Скопировано";
+      setTimeout(function(){ copyBtn.textContent=old; },1400);
+    }
+    function select(){
+      try{
+        var r=document.createRange(); r.selectNodeContents(resultEl);
+        var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        hintEl.textContent="Текст выделен — скопируй вручную.";
+      }catch(e){}
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(ok, select);
+    } else select();
+  });
+  clearBtn.addEventListener("click", function(){ log=[]; save(); renderLog(); renderPlot(); });
+  document.addEventListener("keydown", function(e){
+    if(e.code==="Space" && e.target===document.body){ e.preventDefault(); doRoll(); }
+  });
+
+  /* ---------- тема ---------- */
+  var themeBtn=document.getElementById("theme");
+  var SUN="M8 3.2V1.6M8 14.4v-1.6M12.4 8h1.6M2 8h1.6M11.1 4.9l1.1-1.1M3.8 12.2l1.1-1.1M11.1 11.1l1.1 1.1M3.8 3.8l1.1 1.1";
+  function paintTheme(){
+    var attr=document.documentElement.getAttribute("data-theme");
+    var dark = attr ? attr==="dark"
+      : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    themeBtn.textContent="";
+    var svg=document.createElementNS(SVGNS,"svg");
+    svg.setAttribute("viewBox","0 0 16 16");
+    svg.setAttribute("aria-hidden","true");
+    if(dark){
+      var c=document.createElementNS(SVGNS,"circle");
+      c.setAttribute("cx","8"); c.setAttribute("cy","8"); c.setAttribute("r","3.1");
+      c.setAttribute("fill","currentColor");
+      var rays=document.createElementNS(SVGNS,"path");
+      rays.setAttribute("d",SUN);
+      rays.setAttribute("stroke","currentColor");
+      rays.setAttribute("stroke-width","1.4");
+      rays.setAttribute("stroke-linecap","round");
+      rays.setAttribute("fill","none");
+      svg.appendChild(c); svg.appendChild(rays);
+    } else {
+      var moon=document.createElementNS(SVGNS,"path");
+      moon.setAttribute("d","M13 9.9A5.9 5.9 0 0 1 6.1 3 5.9 5.9 0 1 0 13 9.9Z");
+      moon.setAttribute("fill","currentColor");
+      svg.appendChild(moon);
+    }
+    themeBtn.appendChild(svg);
+  }
+  try{
+    var savedTheme=localStorage.getItem("mf-theme");
+    if(savedTheme) document.documentElement.setAttribute("data-theme",savedTheme);
+  }catch(e){}
+  paintTheme();
+  themeBtn.addEventListener("click", function(){
+    var attr=document.documentElement.getAttribute("data-theme");
+    var dark = attr ? attr==="dark"
+      : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var next = dark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try{ localStorage.setItem("mf-theme", next); }catch(e){}
+    paintTheme();
+  });
+
+  /* ---------- старт: страница открывается с уже брошенными костями ---------- */
+  build();
+  load();
+  var startPicks=rollPicks();
+  for(var i=0;i<DICE.length;i++){
+    var idx=startPicks[i];
+    setWord(i, idx);
+    if(has3d && rigs[i]){
+      var sim=rigs[i].simulate();
+      rigs[i].label(sim.upFace, idx+1);
+      rigs[i].apply(sim.track[sim.track.length-1]);
+      rigs[i].highlight(1);
+      rigs[i].render();
+    }
+  }
+  recent.push(current[0]);
+  renderResult();
+  renderLog();
+  renderPlot();
+})();
+</script>
+</body>
+</html>
